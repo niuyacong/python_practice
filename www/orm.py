@@ -1,27 +1,45 @@
-# 创建连接池
+# 定义Model
 
-# 我们需要创建一个全局的连接池，每个HTTP请求都可以从连接池中直接获取数据库连接。
-# 使用连接池的好处是不必频繁地打开和关闭数据库连接，而是能复用就尽量复用。
-
-# 连接池由全局变量__pool存储，缺省情况下将编码设置为utf8，自动提交事务：
-
-import asyncio
-
-import aiomysql
-
+# 首先要定义的是所有ORM映射的基类Model：
 import logging;logging.basicConfig(level=logging.INFO)
 
-@asyncio.coroutine
-def create_pool(loop,**kw):
-    logging.info("create database conntion pool...");
-    global __pool
-    __pool=yield from aiomysql.create_pool(
-        host=kw.get('host','localhost'),
-        post=kw.get('post',3306),
-        user=kw['user'],
-        password=kw['password'],
-        db=kw['db'],
-        charset=kw.get('charset','utf8'),
-        autocommit=kw.get('autocommit',True),
+
+def create_args_string(num):
+    L=[];
+    for n in range(num):
+        L.append('?');
+    return ', '.join(L)
         
-    )
+class Filed(object):
+    def __init__(self,name,column_type,primary_key,default):
+        self.name=name;
+        self.column_type=column_type;
+        self.primary_key=primary_key;
+        self.default=default; 
+
+class Model(dict,metaclass=ModelMetaclass):
+    def __init__(self,**kw):
+        super(Model,self).__init__(**kw)
+    def __getattr__(self,key):
+        try:
+            return self[key]
+        except  KeyError:
+            raise AttributeError(r"'Model' object has no attrbute '%s'"%key)
+    def __setattr__(self,key,value):
+        self[key]=value
+
+    def getValue(self,value):
+        return getattr(self,key,None)
+
+    def getValueOrDefault(self,key):
+        value=getattr(self,key,None)
+        if value is None:
+            filed=self.__mappings__[key]
+            if filed.default is not None:
+                value=filed.default() if callable(filed.default)else filed.default
+                logging.debug('using default value for %s : %s'%(key,str(value)))
+                setattr(self,key,value)
+        return value;
+    
+    @classmethod
+
