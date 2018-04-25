@@ -20,7 +20,7 @@ def create_pool(loop,**kw):
         port=kw.get('port',3306),
         user=kw.get('root','root'),
         password=kw.get('password','111111'),
-        db=kw.get('db','test'),
+        db=kw.get('db','awesome'),
         charset=kw.get('charset','utf8'),
         autocommit=kw.get('autocommit',True),
         maxsize=kw.get('maxsize',10),
@@ -206,7 +206,7 @@ class Model(dict,metaclass=ModelMetaclass):
                 args.extend(limit)
             else:
                 raise ValueError('Invalid limit value :%s '%str(limit))
-            rs = await select(' '.join(sql), args)
+        rs = await select(' '.join(sql), args)
         return [cls(**r) for r in rs]
 
     @classmethod

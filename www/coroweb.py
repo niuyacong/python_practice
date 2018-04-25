@@ -12,10 +12,10 @@ def get(path):
     '''
     def decorator(func):
         @functools.wraps(func)
-        def wrapper(*args,**kw):
-            return func(*args,**kw)
-        wrapper.__method__='GET'
-        wrapper.__route__=path
+        def wrapper(*args, **kw):
+            return func(*args, **kw)
+        wrapper.__method__ = 'GET'
+        wrapper.__route__ = path
         return wrapper
     return decorator
 
@@ -137,7 +137,7 @@ class RequestHandler(object):
     
 def add_static(app):
     path=os.path.join(os.path.dirname(os.path.abspath(__file__)),'static')
-    app.route.add_static('/static/',path)
+    app.router.add_static('/static/',path)
     logging.info('add static %s =>%s '% ('/static/',path))
 
 def add_route(app,fn):
@@ -148,7 +148,7 @@ def add_route(app,fn):
     if not asyncio.iscoroutinefunction(fn) and not inspect.isgeneratorfunction(fn):
         fn=asyncio.coroutine(fn)
     logging.info('add route %s %s => %s(%s)' % (method, path, fn.__name__, ', '.join(inspect.signature(fn).parameters.keys())))
-    app.route.add_route(method,path,RequestHandler(app,fn))
+    app.router.add_route(method,path,RequestHandler(app,fn))
 
 def add_routes(app,module_name):
     n=module_name.rfind('.')
@@ -163,7 +163,7 @@ def add_routes(app,module_name):
         fn=getattr(mod,attr)
         if callable(fn):
             method=getattr(fn,'__method__',None)
-            path=getattr(fn,"__path__",None)
+            path=getattr(fn,"__route__",None)
             if method and path:
                 add_route(app,fn)
                 
